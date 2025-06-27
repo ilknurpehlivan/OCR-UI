@@ -1,0 +1,11 @@
+build/
+*.user
+*.pro.user*
+CMakeFiles/
+CMakeCache.txt
+*.o
+*.obj
+*.exe
+*.log
+*.autosave
+.qtc_clangd/
