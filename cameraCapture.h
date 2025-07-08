@@ -1,24 +1,38 @@
-#ifndef CAMERA_WORKER_H
-#define CAMERA_WORKER_H
+// cameraCapture.h
+#ifndef CAMERACAPTURE_H
+#define CAMERACAPTURE_H
 
 #include <QObject>
 #include <QTimer>
+#include <QImage>
 #include <opencv2/opencv.hpp>
 #include "imageProvider.h"
+#include "backend.h"
 
-class CameraWorker : public QObject {
+class CameraCapture : public QObject {
     Q_OBJECT
+    Q_PROPERTY(bool cameraRunning READ isCameraRunning NOTIFY cameraRunningChanged)
 
 public:
-    CameraWorker(ImageProvider* provider, QObject *parent = nullptr);
+    CameraCapture(ImageProvider *provider, Backend *backend, QObject *parent = nullptr);
+    ~CameraCapture();
+    Q_INVOKABLE void start();
+    Q_INVOKABLE void stop();
+    Q_INVOKABLE void toggleCamera();
+    bool isCameraRunning() const {return running;}
 
-public slots:
+signals:
+    void cameraRunningChanged();
+
+private slots:
     void captureFrame();
 
 private:
-    cv::VideoCapture cap;
-    ImageProvider* imageProvider;
     QTimer timer;
+    cv::VideoCapture cap;
+    ImageProvider *imageProvider;
+    Backend *backend;
+    bool running = false;
 };
 
-#endif // CAMERA_WORKER_H
+#endif // CAMERACAPTURE_H

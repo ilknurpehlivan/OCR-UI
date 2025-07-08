@@ -1,3 +1,4 @@
+// imageProvider.h
 #ifndef IMAGEPROVIDER_H
 #define IMAGEPROVIDER_H
 
@@ -11,10 +12,11 @@ public:
 
     QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize) override;
     void setImage(const QImage &img);
+    QImage getCurrentImage() const;
 
 private:
     QImage m_image;
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
 };
 
 #endif // IMAGEPROVIDER_H

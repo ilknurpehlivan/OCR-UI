@@ -1,20 +1,45 @@
+// cameraCapture.cpp
 #include "cameraCapture.h"
-#include <QImage>
+#include <QDebug>
 
-CameraWorker::CameraWorker(ImageProvider* provider, QObject *parent)
-    : QObject(parent), imageProvider(provider) {
-    cap.open(0);  // 0 = default camera
-    timer.setInterval(30);  // 30ms ≈ 33 fps
-    connect(&timer, &QTimer::timeout, this, &CameraWorker::captureFrame);
-    timer.start();
+CameraCapture::CameraCapture(ImageProvider *provider, Backend *backend, QObject *parent)
+    : QObject(parent), imageProvider(provider), backend(backend) {}
+
+CameraCapture::~CameraCapture() {
+    stop();
 }
 
-void CameraWorker::captureFrame() {
+void CameraCapture::start() {
+    if (!cap.open(0)) {
+        qWarning() << "Kamera açılamadı!";
+        return;
+    }
+    connect(&timer, &QTimer::timeout, this, &CameraCapture::captureFrame);
+    timer.start(30); // ~33 fps
+    running=true;
+    emit cameraRunningChanged();
+}
+
+void CameraCapture::stop() {
+    if (!running) return;
+    timer.stop();
+    if (cap.isOpened()) cap.release();
+    running = false;
+    emit cameraRunningChanged();
+}
+
+void CameraCapture::toggleCamera() {
+    running ? stop() : start();
+}
+
+void CameraCapture::captureFrame() {
     cv::Mat frame;
     cap >> frame;
-    if (!frame.empty()) {
-        cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
-        QImage img(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-        imageProvider->setImage(img);
-    }
+    if (frame.empty()) return;
+
+    backend->setInputFrame(frame);
+    backend->runDetectionOnly();
+    QImage processed = backend->getProcessedFrame();
+
+    imageProvider->setImage(processed);
 }

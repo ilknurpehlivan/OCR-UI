@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Window
 
 
+
 Window {
     width: 1920
     height: 1080
@@ -11,6 +12,31 @@ Window {
     title: "Suspicious Object Detection"
 
     property string imageSource: ""
+
+    Connections {
+        target: backend
+        function onLogUpdated (message) {
+            txtLogArea.text += message + "\n"
+        }
+        function onThreatStatusChanged(msg, isThreat) {
+              if(isThreat) {
+                  statusBar.color = "red"
+                  statusText.text = "CAUTION! THREAT DETECTED."
+                  statusText.color= "white"
+              }
+              else
+              {
+                  statusBar.color = "#43A047"
+                  statusText.text = "No Threat Detected."
+                  statusText.color = "white"
+              }
+          }
+
+        function onClearLogRequested() {
+              txtLogArea.text = ""
+          }
+    }
+
 
     Rectangle {
         anchors.fill: parent
@@ -23,14 +49,13 @@ Window {
             anchors.topMargin: 30
             anchors.horizontalCenter: parent.horizontalCenter
 
-            //Kamerayı Başlat Butonu
-
+            //Kamerayı Durdur Butonu
             Button {
-                id: btnStartCamera
+                id: btnToggleCamera
                 width: 200
                 height: 60
                 padding: 0
-                text: "Start Camera"
+                text: "Stop Camera"
 
                 font.pixelSize: 20
                 font.bold: true
@@ -44,15 +69,15 @@ Window {
                     anchors.fill: parent
 
                     Text {
-                        text: btnStartCamera.text
+                        text: cameraCapture.cameraRunning ? "Stop Camera" : "Start Camera"
                         anchors.centerIn: parent
-                        font.pixelSize: btnStartCamera.font.pixelSize
-                        font.bold: btnStartCamera.font.bold
+                        font.pixelSize: btnToggleCamera.font.pixelSize
+                        font.bold: btnToggleCamera.font.bold
                         color: "white"
                     }
                 }
-                //***
-                // onClicked: backend.getFrame()
+
+                onClicked: cameraCapture.toggleCamera()
             }
 
             // Run Detection Butonu
@@ -83,7 +108,7 @@ Window {
 
                 }
                 //***
-                // onClicked: backend.runDetection()
+                onClicked: backend.runOCRonLastFrame()
             }
         }
 
@@ -105,6 +130,8 @@ Window {
                 font.bold: true
                 color: "black"
             }
+
+
         }
 
         // Görüntü ve log alanı
@@ -134,11 +161,11 @@ Window {
                         running: true
                         repeat: true
                         onTriggered: cameraView.source = "image://live/frame?" + Date.now()
-                    }
+                       }
 
                     }
 
-            }
+                }
 
             // Sağ: Detection Log
             Column {
@@ -161,17 +188,20 @@ Window {
                     height: imgPreview.height - 40 - 10 - 50
                     color: "white"
                     radius: 5
-
+                 ScrollView {
+                     width: 300
+                     height: imgPreview.height-40-10-50
+                     clip: true
+                     ScrollBar.vertical.policy: ScrollBar.AlwaysOn
                     TextArea {
                         id: txtLogArea
                         anchors.fill: parent
-                        anchors.margins: 6
                         placeholderText: "Logs will appear here..."
                         readOnly: true
                         wrapMode: TextArea.Wrap
 
                     }
-                }
+                } }
                 Row {
                     spacing: 18
 
@@ -185,6 +215,7 @@ Window {
                             anchors.centerIn: parent
                             color: "white"
                         }
+                         onClicked: backend.exportLog(txtLogArea.text)
                     }
 
                     Button {
@@ -197,6 +228,11 @@ Window {
                             anchors.centerIn: parent
                             color: "white"
                         }
+
+                        onClicked: {
+                              backend.clearLog()
+                              txtLogArea.text = ""
+                          }
                     }
                 }
             }
@@ -204,4 +240,5 @@ Window {
     }
 
 }
+
 
