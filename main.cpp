@@ -25,11 +25,12 @@ int main(int argc, char *argv[]) {
     cameraCapture->start();  // kamera başlatılıyor
 
 
-
     // QML dosyasını yükle
     engine.load(QUrl(QStringLiteral("qrc:/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
+
+
 
     return app.exec();
 }

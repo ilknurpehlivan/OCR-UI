@@ -5,6 +5,7 @@ import QtQuick.Window
 
 
 
+
 Window {
     width: 1920
     height: 1080
@@ -32,11 +33,10 @@ Window {
               }
           }
 
-        function onClearLogRequested() {
-              txtLogArea.text = ""
-          }
+        // function onClearLogRequested() {
+        //       txtLogArea.text = ""
+        //   }
     }
-
 
     Rectangle {
         anchors.fill: parent
@@ -111,7 +111,6 @@ Window {
                 onClicked: backend.runOCRonLastFrame()
             }
         }
-
         // Durum Çubuğu
         Rectangle {
             id: statusBar
@@ -162,9 +161,7 @@ Window {
                         repeat: true
                         onTriggered: cameraView.source = "image://live/frame?" + Date.now()
                        }
-
                     }
-
                 }
 
             // Sağ: Detection Log
@@ -188,20 +185,30 @@ Window {
                     height: imgPreview.height - 40 - 10 - 50
                     color: "white"
                     radius: 5
-                 ScrollView {
-                     width: 300
-                     height: imgPreview.height-40-10-50
-                     clip: true
-                     ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-                    TextArea {
-                        id: txtLogArea
-                        anchors.fill: parent
-                        placeholderText: "Logs will appear here..."
-                        readOnly: true
-                        wrapMode: TextArea.Wrap
 
+                    ScrollView {
+                        width: 320
+                        height: imgPreview.height - 40 - 10 - 50
+                        clip: true
+
+                        TextArea {
+                            id: txtLogArea
+                            width: parent.width
+                            height: parent.height
+                            placeholderText: "Logs will appear here..."
+                            readOnly: true
+                            wrapMode: TextArea.Wrap
+
+                            onTextChanged: {
+                                txtLogArea.moveCursorSelection(TextArea.End)
+                            }
+                        }
+
+                        ScrollBar.vertical.policy: ScrollBar.AlwaysOn
                     }
-                } }
+
+                }
+
                 Row {
                     spacing: 18
 

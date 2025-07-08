@@ -110,6 +110,9 @@ void Backend::runDetectionOnly() {
     std::vector<std::string> dummyTexts(boxes.size(), "");
 
     currentFrame = drawBoxes(currentFrame, boxes, dummyTexts);
+    if (boxes.empty()) {
+        emit threatStatusChanged("", false);
+    }
 }
 
 void Backend::runOCRonLastFrame() {
@@ -149,8 +152,72 @@ cv::Mat Backend::drawBoxes(cv::Mat &frame, const std::vector<cv::Rect> &boxes, s
 
 void Backend::logText(const std::string &text) {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
-    QString qText = QString("[%1] %2").arg(timestamp, QString::fromStdString(text).trimmed());
+    QString originalText = QString::fromStdString(text).trimmed();
+    QString qText = QString("[%1] %2").arg(timestamp, originalText);
     emit logUpdated(qText);
+
+
+    QMap<QString, QStringList> keywordMap = {
+        { "danger", {"danger", "denger", "danjer", "dnager", "dangr", "danqer"} },
+        { "warning", {"warning", "waring", "warniing", "warnng", "warninq"} },
+        { "explosive", {"explosive", "explozive", "explosiv", "exlosive", "expl0sive"} },
+        { "hazard", {"hazard", "hazerd", "hazrd", "hazzard", "h4zard"} },
+        { "acid", {"acid", "acld", "asid", "aced", "4cid", "açid"} },
+        { "flammable", {"flammable", "flamable", "flmmable", "flamible", "flamabl"} },
+        { "toxic", {"toxic", "toxik", "toxsic", "tox1c", "toxıc"} },
+        { "stop", {"stop", "st0p", "stpp", "s+op"} },
+        { "alert", {"alert", "alart", "alrt", "aleert"} },
+        { "fire", {"fire", "fier", "f1re", "fyre", "fiire"} },
+        { "biohazard", {"biohazard", "biohazerd", "bio hzr", "biohaz", "bio hazaard"} },
+        { "danger zone", {"danger zone", "danjer zone", "dnager zone", "dangr zone"} },
+        { "emergency", {"emergency", "emergncy", "emergenccy", "emergeny"} },
+        { "keep out", {"keep out", "kep out", "keepot", "keepout", "keepp out"} },
+        { "evacuate", {"evacuate", "evakvate", "evacuet", "evacuat"} },
+        { "hazmat", {"hazmat", "hazmatt", "hazmt", "hazmaat"} },
+        { "chemical", {"chemical", "kemikal", "chemcal", "cheemical"} },
+        { "shock", {"shock", "shok", "sh0ck", "shawk"} },
+        { "electrical hazard", {"electrical hazard", "elektrikal hazard", "elec hazard", "electric hazard"} },
+        { "high voltage", {"high voltage", "hi voltage", "high voltaje", "hıgh voltage"} },
+        { "warning sign", {"warning sign", "warniing sign", "warnng sign", "waring sign"} },
+        { "lethal", {"lethal", "lethl", "lethaal"} },
+        { "alarm", {"alarm", "alrm", "alaram"} },
+        { "poison", {"poison", "poıson", "poısonn", "poizon"} },
+        { "gas", {"gas", "gaz", "gass"} },
+        { "radiation", {"radiation", "rad1ation", "radiat1on", "radyation"} },
+        { "critical", {"critical", "cr1tical", "crtical", "crıtical"} },
+        { "fragile", {"fragile", "fragle", "fragel", "fr4gile"} },
+        { "sharp", {"sharp", "sh4rp", "sharpp"} },
+        { "hot surface", {"hot surface", "h0t surface", "hot surfce"} },
+        { "restricted", {"restricted", "restrcted", "restircted"} },
+        { "do not enter", {"do not enter", "dont enter", "do not entar"} },
+        { "authorized personnel only", {"authorized personnel only", "authorized only", "auth personnel only"} },
+        { "crush hazard", {"crush hazard", "crsh hazard", "crush hazrd"} },
+        { "burn hazard", {"burn hazard", "burn hazrd", "burn hzr"} },
+        { "fall hazard", {"fall hazard", "fal hazard", "f4ll hazard"} },
+        { "no entry", {"no entry", "no entri", "no enter"} },
+        { "no trespassing", {"no trespassing", "no trespasin", "no trespasing"} },
+        { "lockdown", {"lockdown", "lokdown", "lockdwn"} },
+        { "risk of death", {"risk of death", "r1sk of death", "risk death"} },
+        { "be safe lock it out", {"be safe lock it out", "be safe lock-out", "lock it out", "lock-it-out"} },
+        { "stay clear", {"stay clear", "stay cl3ar", "staycleer"} },
+        { "safety first", {"safety first", "safety frst", "safty first"}},
+        { "safety", {"sftey", "safty"}}
+    };
+
+    QString lowered = originalText.toLower();
+
+    for (auto it = keywordMap.begin(); it != keywordMap.end(); ++it) {
+        const QStringList &variants = it.value();
+
+        for (const QString &variant : variants) {
+            if (lowered.contains(variant)) {
+                emit threatStatusChanged(it.key(), true);
+                return;
+            }
+        }
+    }
+
+    emit threatStatusChanged("", false);
 }
 
 
