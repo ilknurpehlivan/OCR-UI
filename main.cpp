@@ -13,24 +13,16 @@ int main(int argc, char *argv[]) {
     auto *provider = new ImageProvider();
     engine.addImageProvider("live", provider);
 
-    // Backend oluştur (ImageProvider veriliyor)
     Backend *backend = new Backend(provider);
     engine.rootContext()->setContextProperty("backend", backend);
-
-    // CameraCapture *camera = new CameraCapture(provider, backend);
-    // camera->start();  // kamera akışını başlat
 
     CameraCapture *cameraCapture = new CameraCapture(provider, backend);
     engine.rootContext()->setContextProperty("cameraCapture", cameraCapture);
     cameraCapture->start();  // kamera başlatılıyor
 
-
-    // QML dosyasını yükle
     engine.load(QUrl(QStringLiteral("qrc:/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
-
-
 
     return app.exec();
 }

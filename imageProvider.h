@@ -1,4 +1,3 @@
-// imageProvider.h
 #ifndef IMAGEPROVIDER_H
 #define IMAGEPROVIDER_H
 
@@ -19,4 +18,4 @@ private:
     mutable QMutex m_mutex;
 };
 
-#endif // IMAGEPROVIDER_H
+#endif

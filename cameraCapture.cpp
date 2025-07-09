@@ -15,7 +15,7 @@ void CameraCapture::start() {
         return;
     }
     connect(&timer, &QTimer::timeout, this, &CameraCapture::captureFrame);
-    timer.start(30); // ~33 fps
+    timer.start(30);
     running=true;
     emit cameraRunningChanged();
 }
@@ -25,6 +25,12 @@ void CameraCapture::stop() {
     timer.stop();
     if (cap.isOpened()) cap.release();
     running = false;
+
+    QImage black(640, 480, QImage::Format_RGB888);
+    black.fill(Qt::black);
+    imageProvider->setImage(black);
+
+
     emit cameraRunningChanged();
 }
 

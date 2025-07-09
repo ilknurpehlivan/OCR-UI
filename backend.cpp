@@ -13,7 +13,8 @@ Backend::Backend(QObject *parent) : QObject(parent) {
     if(tess.Init(NULL, "eng", tesseract::OEM_LSTM_ONLY)) {
         qDebug() << "Tesseract başlatılamadı!";
     } else {
-        tess.SetPageSegMode(tesseract::PSM_AUTO);
+        // tess.SetPageSegMode(tesseract::PSM_AUTO);
+        tess.SetPageSegMode(tesseract::PSM_SINGLE_BLOCK);
     }
 }
 
@@ -94,12 +95,38 @@ std::vector<cv::Rect> Backend::runDetection(cv::Mat &frame) {
     return boxes;
 }
 
-std::string Backend::recognizeTextFromROI(const cv::Mat &roi) {
-    tess.SetImage(roi.data, roi.cols, roi.rows, roi.channels(), roi.step);
+
+std::string Backend::recognizeTextFromROI(const cv::Mat &roiOriginal) {
+
+    if (roiOriginal.empty() || roiOriginal.cols < 30 || roiOriginal.rows < 15) {
+        qDebug() << "ROI çok küçük veya boş.";
+        return "";
+    }
+
+    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss_zzz");
+    QString filename = QString("/home/mana/projectOCR/roi_images/roi_%1.jpg").arg(timestamp);
+    cv::imwrite(filename.toStdString(), roiOriginal);
+
+
+    // Griye çevir
+    cv::Mat gray;
+    cv::cvtColor(roiOriginal, gray, cv::COLOR_BGR2GRAY);
+
+    // Kontrast artır
+    cv::threshold(gray, gray, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+
+    // Boyutu artır
+    cv::Mat resized;
+    cv::resize(gray, resized, cv::Size(), 2.0, 2.0, cv::INTER_LINEAR);
+
+    // OCR
+    tess.SetImage(resized.data, resized.cols, resized.rows, 1, resized.step);
+    tess.SetSourceResolution(300);
     tess.Recognize(0);
     char* outText = tess.GetUTF8Text();
-    std::string result(outText);
+    std::string result(outText ? outText : "");
     delete[] outText;
+
     return result;
 }
 
@@ -226,7 +253,7 @@ void Backend::clearLog() {
 }
 
 void Backend::exportLog(const QString &logText) {
-    QString dirPath = "/home/mana/projectOCR";
+    QString dirPath = "/home/mana/projectOCR/logs";
     QString filename = QString("log_%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
     QString fullPath = dirPath + "/" + filename;
 

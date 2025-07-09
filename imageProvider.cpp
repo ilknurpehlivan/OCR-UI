@@ -1,4 +1,3 @@
-// imageProvider.cpp
 #include "imageProvider.h"
 
 ImageProvider::ImageProvider()

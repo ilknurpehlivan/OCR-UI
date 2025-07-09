@@ -1,4 +1,3 @@
-// cameraCapture.h
 #ifndef CAMERACAPTURE_H
 #define CAMERACAPTURE_H
 
@@ -35,4 +34,4 @@ private:
     bool running = false;
 };
 
-#endif // CAMERACAPTURE_H
+#endif

@@ -1,4 +1,3 @@
-
 #ifndef BACKEND_H
 #define BACKEND_H
 
@@ -45,6 +44,6 @@ signals:
 
 };
 
-#endif // BACKEND_H
+#endif
 
 

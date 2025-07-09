@@ -4,8 +4,6 @@ import QtQuick.Layouts
 import QtQuick.Window
 
 
-
-
 Window {
     width: 1920
     height: 1080
@@ -32,10 +30,6 @@ Window {
                   statusText.color = "white"
               }
           }
-
-        // function onClearLogRequested() {
-        //       txtLogArea.text = ""
-        //   }
     }
 
     Rectangle {
@@ -49,19 +43,25 @@ Window {
             anchors.topMargin: 30
             anchors.horizontalCenter: parent.horizontalCenter
 
-            //Kamerayı Durdur Butonu
+
+            // Kamerayı Durdur Butonu
             Button {
                 id: btnToggleCamera
                 width: 200
                 height: 60
                 padding: 0
-                text: "Stop Camera"
+                text: cameraCapture.cameraRunning ? "Stop Camera" : "Start Camera"
 
                 font.pixelSize: 20
                 font.bold: true
+                hoverEnabled: true
 
                 background: Rectangle {
-                    color: "#1976D2"
+                    color: btnToggleCamera.pressed
+                           ? "#0D47A1"
+                           : btnToggleCamera.hovered
+                               ? "#1565C0"
+                               : "#1976D2"
                     radius: 50
                 }
 
@@ -69,7 +69,7 @@ Window {
                     anchors.fill: parent
 
                     Text {
-                        text: cameraCapture.cameraRunning ? "Stop Camera" : "Start Camera"
+                        text: btnToggleCamera.text
                         anchors.centerIn: parent
                         font.pixelSize: btnToggleCamera.font.pixelSize
                         font.bold: btnToggleCamera.font.bold
@@ -83,33 +83,39 @@ Window {
             // Run Detection Butonu
             Button {
                 id: btnRunDetection
-                text: " Run Detection"
                 width: 200
                 height: 60
                 padding: 0
+                text: "Run Detection"
 
                 font.pixelSize: 20
                 font.bold: true
+                hoverEnabled: true
 
                 background: Rectangle {
-                    color: "#43A047"
+                    color: btnRunDetection.pressed
+                           ? "#2E7D32"      // Basılıyken koyu yeşil
+                           : btnRunDetection.hovered
+                               ? "#388E3C"  // Üzerine gelince açık yeşil
+                               : "#43A047"  // Normalde yeşil
                     radius: 50
                 }
+
                 contentItem: Item {
                     anchors.fill: parent
 
-                Text {
-                    text: btnRunDetection.text
-                    anchors.centerIn: parent
-                    font.pixelSize: btnRunDetection.font.pixelSize
-                    font.bold: btnRunDetection.font.bold
-                    color: "white"
+                    Text {
+                        text: btnRunDetection.text
+                        anchors.centerIn: parent
+                        font.pixelSize: btnRunDetection.font.pixelSize
+                        font.bold: btnRunDetection.font.bold
+                        color: "white"
+                    }
                 }
 
-                }
-                //***
                 onClicked: backend.runOCRonLastFrame()
             }
+
         }
         // Durum Çubuğu
         Rectangle {
@@ -211,25 +217,48 @@ Window {
 
                 Row {
                     spacing: 18
-
+                    //Export Log
                     Button {
                         id: btnExportLog
                         text: "Export Log"
                         width: 140
-                        background: Rectangle { color: "#1976D2" }
+                        hoverEnabled: true
+
+                        background: Rectangle {
+                            color: btnExportLog.pressed
+                                   ? "#0D47A1"
+                                   : btnExportLog.hovered
+                                       ? "#1565C0"
+                                       : "#1976D2"
+                        }
+
                         contentItem: Text {
                             text: btnExportLog.text
                             anchors.centerIn: parent
                             color: "white"
                         }
-                         onClicked: backend.exportLog(txtLogArea.text)
-                    }
 
+                        onClicked: {
+                            backend.exportLog(txtLogArea.text)
+                            dialogExport.open()
+                        }
+                    }
+                    //Clear Log
                     Button {
                         id: btnClearLog
                         text: "Clear Log"
                         width: 140
-                        background: Rectangle { color: "#1976D2" }
+                        hoverEnabled: true
+
+
+                        background: Rectangle {
+                            color: btnClearLog.pressed
+                                   ? "#0D47A1"
+                                   : btnClearLog.hovered
+                                       ? "#1565C0"
+                                       : "#1976D2"
+                        }
+
                         contentItem: Text {
                             text: btnClearLog.text
                             anchors.centerIn: parent
@@ -243,6 +272,26 @@ Window {
                     }
                 }
             }
+        }
+    }
+    Dialog {
+        id: dialogExport
+        modal: true
+        title: "Export Successful"
+        standardButtons: Dialog.Ok
+        width: 300
+        height: 100
+
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+
+        contentItem: Text {
+            text: "Log file has been successfully exported."
+            anchors.centerIn: parent
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            wrapMode: Text.WordWrap
+            font.pixelSize: 16
         }
     }
 
